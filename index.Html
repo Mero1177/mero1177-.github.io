@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أبطال الوعي - منصة مكافحة التنمر والتحرش</title>
+    <meta name="description" content="منصة أبطال الوعي - مكافحة التنمر والتحرش بتقديم الدعم النفسي والقانوني">
+    <meta name="keywords" content="التنمر, التحرش, الدعم النفسي, البلاغات, الطوارئ">
+    <link rel="canonical" href="https://abtal-alwaai.com/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="Style.Css">
+</head>
+<body>
+    <!-- شريط الإشعارات واللغة -->
+    <div class="top-bar">
+        <div class="container top-bar-content">
+            <div class="notification-dropdown" id="notificationDropdown">
+                <div class="notification-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>تم استلام بلاغك وسيتم مراجعته</span>
+                </div>
+                <div class="notification-item">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>يوجد تحديث جديد على المنصة</span>
+                </div>
+                <div class="notification-item">
+                    <i class="fas fa-comment"></i>
+                    <span>لديك رسالة جديدة من الاستشاري المتخصص</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Streaming Container -->
+    <div class="live-stream-container" id="liveStreamContainer">
+        <video class="live-stream-video" id="liveStreamVideo" autoplay muted></video>
+        <div class="live-stream-controls">
+            <button class="btn btn-accent" id="stopLiveStream">
+                <i class="fas fa-stop"></i> إيقاف البث
+            </button>
+            <button class="btn btn-outline" id="cancelLiveStream">
+                <i class="fas fa-times"></i> إلغاء
+            </button>
+        </div>
+    </div>
+
+    <!-- لوحة إمكانية الوصول -->
+    <div class="accessibility-panel" id="accessibilityPanel">
+        <h3>خيارات الوصول</h3>
+        <div class="accessibility-panel-option">
+            <label for="fontSizeSelect">حجم الخط:</label>
+            <select id="fontSizeSelect">
+                <option value="normal">عادي</option>
+                <option value="large">كبير</option>
+                <option value="xlarge">كبير جداً</option>
+            </select>
+        </div>
+        <div class="accessibility-panel-option">
+            <label for="highContrastToggle">تباين عالي:</label>
+            <input type="checkbox" id="highContrastToggle">
+        </div>
+        <div class="accessibility-panel-option">
+            <label for="textToSpeechToggle">القارئ الصوتي:</label>
+            <input type="checkbox" id="textToSpeechToggle">
+        </div>
+    </div>
+
+    <!-- جولة تعرفية -->
+    <div class="tour-container" id="tourContainer" style="display: none;">
+        <div class="tour-overlay"></div>
+        <div class="tour-popup">
+            <div class="tour-content">
+                <h3 id="tourTitle">مرحباً بك في منصة أبطال الوعي</h3>
+                <p id="tourDescription">سنأخذك في جولة سريعة لتتعرف على أهم الميزات التي نقدمها</p>
+                <div class="tour-progress">
+                    <div class="tour-progress-bar"></div>
+                    <div class="tour-progress-steps"></div>
+                </div>
+            </div>
+            <div class="tour-buttons">
+                <button class="btn btn-primary" id="tourSkip">تخطي</button>
+                <button class="btn btn-primary" id="tourPrev" style="display: none;">السابق</button>
+                <button class="btn btn-primary" id="tourNext">التالي</button>
+                <button class="btn btn-primary" id="tourFinish" style="display: none;">إنهاء الجولة</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- زر الجولة -->
+    <button class="tour-launcher" id="tourLauncher">
+        <i class="fas fa-info-circle"></i>
+        <span>جولة تعريفية</span>
+    </button>
+
+    <div class="container">
+        <header>
+            <div class="header-background"></div>
+            <button class="nav-toggle" id="navToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div class="logo" id="homeLink">
+                <img src="Logo.jpg" alt="شعار منصة أبطال الوعي - درع واقي يرمز للحماية والأمان">
+                <h1>أبطال <span>الوعي</span></h1>
+            </div>
+            
+            <nav role="navigation" aria-label="القائمة الرئيسية">
+                <ul id="navMenu">
+                    <li><a href="#" class="nav-link active" data-page="home">الرئيسية</a></li>
+                    <li><a href="#" class="nav-link" data-page="report">الإبلاغ</a></li>
+                    <li><a href="#" class="nav-link" data-page="tracking">متابعة البلاغات</a></li>
+                    <li><a href="#" class="nav-link" data-page="security">فحص الأمان</a></li>
+                    <li><a href="#" class="nav-link" data-page="awareness">التوعية</a></li>
+                    <li><a href="#" class="nav-link" data-page="resources">المصادر</a></li>
+                    <li><a href="#" class="nav-link" data-page="notifications">التنبيهات الواردة</a></li>
+                </ul>
+            </nav>
+            
+            <div class="auth-buttons">
+                <div class="user-info" id="userInfo">
+                    <i class="fas fa-user"></i>
+                    <span id="usernameDisplay">مرحباً، بالمستخدم الجديد</span>
+                    <button class="btn btn-outline" id="logoutBtn">تسجيل الخروج</button>
+                </div>
+                <button class="btn btn-primary" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                </button>
+                <button class="btn btn-outline" id="registerBtn">
+                    <i class="fas fa-user-plus"></i> إنشاء حساب
+                </button>
+                <button class="btn btn-outline" id="accessibilityBtn">
+                    <i class="fas fa-universal-access accessibility-icon"></i>
+                    <div class="accessibility-label">ذوي الهمم</div>
+                </button>
+            </div>
+        </header>
+        
+        <main role="main">
+            <!-- الصفحة الرئيسية -->
+            <div class="page active" id="home">
+                <section class="hero">
+                    <div class="hero-content">
+                        <h2>معاً ضد التنمر والتحرش...<br>نحمي بعضنا</h2>
+                        <p>منصة "أبطال الوعي" تقدم لك بيئة آمنة للإبلاغ عن حالات التنمر والتحرش الإلكتروني والمباشر، مع توفير الدعم النفسي والقانوني اللازم. نحن هنا لنساعدك وندعمك.</p>
+                        <div class="hero-buttons">
+                            <button class="btn btn-accent" id="heroReportBtn">
+                                <i class="fas fa-exclamation-circle"></i> الإبلاغ عن حالة
+                            </button>
+                            <button class="btn btn-consultant">
+                                <i class="fas fa-headset"></i> الاستشاري المتخصص
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="hero-image">
+                        <img src="Slogan.png" alt="شخصان يتعاونان لمكافحة التنمر - رمز التضامن والدعم المجتمعي">
+                    </div>
+                </section>
+                
+                <section class="features">
+                    <div class="feature-card">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>الإبلاغ الآمن</h3>
+                        <p>أبلغ عن حالات التنمر والتحرش بطريقة آمنة ومشفرة تحافظ على خصوصيتك</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <i class="fas fa-lock"></i>
+                        <h3>حماية البيانات</h3>
+                        <p>بياناتك محمية بتقنيات تشفير متقدمة لضمان عدم الوصول لها </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <i class="fas fa-headset"></i>
+                        <h3>دعم فوري</h3>
+                        <p>تواصل مع مستشارين متخصصين على مدار الساعة للحصول على الدعم النفسي والقانوني</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <i class="fas fa-wheelchair"></i>
+                        <h3>لذوي الهمم</h3>
+                        <p>واجهة مخصصة ومعدلة لتلائم جميع المستخدمين من ذوي الهمم</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <i class="fas fa-video"></i>
+                        <h3>بث مباشر للطوارئ <span class="live-indicator"></span></h3>
+                        <p>إمكانية البث المباشر في الحالات الطارئة لتوثيق الواقعة في الوقت الفعلي</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <h3>تحديد الموقع</h3>
+                        <p>تحديد الموقع الجغرافي الدقيق للحالات الطارئة لسرعة الاستجابة</p>
+                    </div>
+                </section>
+                
+                <section class="emergency-numbers">
+                    <h2>أرقام الطوارئ</h2>
+                    <div class="numbers-grid">
+                        <div class="number-card">
+                            <h3>طلب النجدة</h3>
+                            <p>122</p>
+                            <button class="call-btn">اتصال فوري</button>
+                        </div>
+                        
+                        <div class="number-card">
+                            <h3>الإسعاف</h3>
+                            <p>123</p>
+                            <button class="call-btn">اتصال فوري</button>
+                        </div>
+                        
+                        <div class="number-card">
+                            <h3>نجدة الطفل</h3>
+                            <p>16000</p>
+                            <button class="call-btn">اتصال فوري</button>
+                        </div>
+                        
+                        <div class="number-card">
+                            <h3>مكافحة التنمر</h3>
+                            <p>16528</p>
+                            <button class="call-btn">اتصال فوري</button>
+                        </div>
+                        
+                        <div class="number-card">
+                            <h3>الحماية المدني</h3>
+                            <p>180</p>
+                            <button class="call-btn">اتصال فوري</button>
+                        </div>
+
+                        <div class="number-card">
+                            <h3>شكاوى الإتصالات</h3>
+                            <p>1550</p>
+                            <button class="call-btn">اتصال فوري</button>
+                        </div>
+
+                        <div class="number-card">
+                            <h3>إنقاذ المتشردين</h3>
+                            <p>16439</p>
+                            <button class="call-btn">اتصال فوري</button>
+                        </div>
+
+                        <div class="number-card">
+                            <h3>الإبلاغ عن جرائم المعلومات</h3>
+                            <p>15008</p>
+                            <button class="call-btn">اتصال فوري</button>
+                        </div>
+
+                         <div class="number-card">
+                            <h3>الشكاوى الحكومية</h3>
+                            <p>16528</p>
+                            <button class="call-btn">اتصال فوري</button>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="security-check">
+                    <h2>فحص الروابط والملفات</h2>
+                    <p>استخدم أداتنا المتقدمة للتحقق من سلامة الروابط والملفات قبل مشاركتها أو فتحها</p>
+                    
+                    <div class="security-check-form">
+                        <div class="security-check-input">
+                            <input type="text" id="securityCheckInput" placeholder="أدخل الرابط أو اسم الملف للفحص">
+                            <button class="btn btn-accent" id="securityCheckBtn">فحص</button>
+                        </div>
+                        <div class="security-check-result" id="securityCheckResult"></div>
+                    </div>
+                </section>
+                
+                <!-- قسم الأسئلة الشائعة -->
+                <section class="faq-section">
+                    <div class="faq-header">
+                        <h1>الأسئلة الشائعة</h1>
+                        <p>هنا ستجد إجابات على الأسئلة الأكثر شيوعاً حول منصة أبطال الوعي وخدماتها</p>
+                    </div>
+                    
+                    <div class="search-box">
+                        <input type="text" placeholder="ابحث عن سؤال...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    
+                    <div class="faq-list">
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <span>كيف يمكنني الإبلاغ عن حالة تنمر أو تحرش إلكتروني ؟</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p>يمكنك الإبلاغ عن طريق النقر على زر "الإبلاغ عن حالة" في الصفحة الرئيسية وتعبئة النموذج بالمعلومات المطلوبة. سيتم التعامل مع بلاغك بسرية تامة وبتوجيه من المختصين.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <span>هل يمكنني الحصول على استشارة نفسية مجانية؟</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p>نعم، نقدم بعض الاستشارات النفسية المجانية من خلال متخصصين معتمدين. يمكنك طلب استشارة عن طريق النقر على "التحدث مع مستشار" وسيتم توجيهك إلى الجلسة المناسبة لاحتياجاتك.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <span>كيف أحمي نفسي من التنمر الإلكتروني؟</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p>ننصح بعدم مشاركة المعلومات الشخصية على الإنترنت، واستخدام إعدادات الخصوصية القوية، وعدم التفاعل مع المتنمرين، والإبلاغ فوراً عن أي حالة تنمر. يمكنك أيضاً استخدام أدوات فحص الروابط المتوفرة على المنصة.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <span>ما هي الخدمات المتاحة لذوي الهمم؟</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p>نوفر واجهة مخصصة ومعدلة لتلائم جميع المستخدمين من ذوي الهمم، تشمل خيارات تكبير النص، التباين العالي، القارئ الصوتي، وتصميمًا يسهل التنقل فيه باستخدام التقنيات المساعدة.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-support">
+                        <p>لم تجد إجابة لسؤالك؟ تواصل مع فريق الدعم</p>
+                        <a href="#" class="contact-btn">
+                            <i class="fas fa-headset"></i>
+                            <span>تواصل معنا</span>
+                        </a>
+                    </div>
+                </section>
+            </div>
+            
+            <!-- صفحة الإبلاغ -->
+            <div class="page" id="report">
+                <div class="page-header">
+                    <h2>الإبلاغ عن حالة</h2>
+                    <p>يمكنك هنا الإبلاغ عن أي حالة تنمر أو تحرش أو استغلال. نحن نضمن سرية معلوماتك ونقدم الدعم اللازم.</p>
+                </div>
+                <div class="page-content">
+                    <div class="feature-card">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>كيفية الإبلاغ</h3>
+                        <p>لإبلاغ عن حالة، يرجى النقر على زر "تقديم بلاغ جديد" أدناه وتعبئة النموذج بالمعلومات المطلوبة. يمكنك إرفاق صور أو مستندات تدعم بلاغك.</p>
+                        <button class="btn btn-accent" id="pageReportBtn" style="margin-top: 20px;">
+                            <i class="fas fa-plus"></i> تقديم بلاغ جديد
+                        </button>
+                    </div>
+                    
+                    <!-- قسم تتبع البلاغات -->
+                    <div class="report-history">
+                        <h3><i class="fas fa-history"></i> البلاغات السابقة</h3>
+                        <div id="reportsList">
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- صفحة تتبع البلاغات -->
+            <div class="page" id="tracking">
+                <div class="page-header">
+                    <h2>متابعة البلاغات</h2>
+                    <p>تابع حالة البلاغات التي قدمتها ومعرفة أحدث التحديثات عليها</p>
+                </div>
+                <div class="page-content">
+                    <div class="feature-card">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>حالة البلاغات</h3>
+                        <p>هنا يمكنك تتبع حالة جميع البلاغات التي قدمتها ومعرفة أحدث التحديثات</p>
+                    </div>
+                    
+                    <!-- تحسين واجهة تتبع البلاغات -->
+                    <div class="tracking-container" id="trackingReportsList">
+
+                    </div>
+                </div>
+            </div>
+            
+            <!-- صفحة فحص الأمان -->
+            <div class="page" id="security">
+                <div class="page-header">
+                    <h2>فحص الروابط والملفات</h2>
+                    <p>أدوات متقدمة للتحقق من سلامة الروابط والملفات قبل فتحها أو مشاركتها</p>
+                </div>
+                <div class="page-content">
+                    <div class="security-check">
+                        <h2>فحص الأمان</h2>
+                        <p>استخدم هذه الأداة للتحقق من وجود فيروسات أو برمجيات خبيثة في الروابط والملفات</p>
+                        
+                        <div class="security-check-form">
+                            <div class="security-check-input">
+                                <input type="text" id="pageSecurityCheckInput" placeholder="أدخل الرابط أو اسم الملف للفحص">
+                                <button class="btn btn-accent" id="pageSecurityCheckBtn">فحص</button>
+                            </div>
+                            <div class="security-check-result" id="pageSecurityCheckResult"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <i class="fas fa-shield-virus"></i>
+                        <h3>نصائح الأمان</h3>
+                        <p>• لا تفتح روابط من مصادر غير موثوقة<br>• تأكد من مصدر الملفات قبل تحميلها<br>• استخدم برامج مكافحة الفيروسات<br>• حافظ على تحديث نظامك وبرامجك</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- صفحة التوعية -->
+            <div class="page" id="awareness">
+                <div class="page-header">
+                    <h2>التوعية</h2>
+                    <p>هنا ستجد مواد توعوية عن التنمر والتحرش وأشكالهما المختلفة وكيفية التعامل معها.</p>
+                </div>
+                <div class="page-content">
+                    <div class="video-gallery">
+                        <div class="video-item">
+                            <img src="https://img.youtube.com/vi/7ZBkqsPLMuM/maxresdefault.jpg" alt="فيديو توعوي عن التنمر - كيفية التعرف على أشكال التنمر المختلفة">
+                            <div class="play-btn" onclick="openVideo('https://www.youtube.com/watch?v=7ZBkqsPLMuM')">
+                                <i class="fas fa-play"></i>
+                            </div>
+                            <div class="video-info">
+                                <h4>كيفية التعرف على التنمر</h4>
+                                <p>فيديو تعليمي يشرح أشكال التنمر المختلفة وكيفية التعرف عليها</p>
+                            </div>
+                        </div>
+                        
+                        <div class="video-item">
+                            <img src="https://img.youtube.com/vi/WYSGB5xDJ0s/maxresdefault.jpg" alt="فيديو توعوي عن التنمر - الآثار النفسية والاجتماعية للتنمر">
+                            <div class="play-btn" onclick="openVideo('https://www.youtube.com/watch?v=WYSGB5xDJ0s')">
+                                <i class="fas fa-play"></i>
+                            </div>
+                            <div class="video-info">
+                                <h4>آثار التنمر على الضحايا</h4>
+                                <p>فيديو يشرح الآثار النفسية والاجتماعية للتنمر على الضحايا</p>
+                            </div>
+                        </div>
+                        
+                        <div class="video-item">
+                            <img src="https://img.youtube.com/vi/nZjIsGDL1Fc/maxresdefault.jpg" alt="فيديو توعوي عن التنمر - نصائح عملية لمواجهة التنمر">
+                            <div class="play-btn" onclick="openVideo('https://www.youtube.com/watch?v=nZjIsGDL1Fc')">
+                                <i class="fas fa-play"></i>
+                            </div>
+                            <div class="video-info">
+                                <h4>كيف تواجه التنمر</h4>
+                                <p>نصائح عملية للتعامل مع حالات التنمر والتصدي لها</p>
+                            </div>
+                        </div>
+                        
+                        <div class="video-item">
+                            <img src="https://img.youtube.com/vi/bihn-6fPv-I/maxresdefault.jpg" alt="فيديو توعوي عن التنمر - دور المجتمع في مكافحة التنمر">
+                            <div class="play-btn" onclick="openVideo('https://www.youtube.com/watch?v=bihn-6fPv-I')">
+                                <i class="fas fa-play"></i>
+                            </div>
+                            <div class="video-info">
+                                <h4>دور المجتمع في مكافحة التنمر</h4>
+                                <p>كيف يمكن للمجتمع المساهمة في الحد من ظاهرة التنمر</p>
+                            </div>
+                        </div>
+                        
+                        <div class="video-item">
+                            <img src="https://img.youtube.com/vi/PUOFEosWCiQ/maxresdefault.jpg" alt="فيديو توعوي عن التنمر - قصص نجاح في التغلب على التنمر">
+                            <div class="play-btn" onclick="openVideo('https://www.youtube.com/watch?v=PUOFEosWCiQ')">
+                                <i class="fas fa-play"></i>
+                            </div>
+                            <div class="video-info">
+                                <h4>قصص نجاح في التغلب على التنمر</h4>
+                                <p>قصص ملهمة لأشخاص تمكنوا من التغلب على آثار التنمر</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- صفحة المصادر -->
+            <div class="page" id="resources">
+                <div class="page-header">
+                    <h2>المصادر</h2>
+                    <p>هنا ستجد مجموعة من المصادر والمراجع مفيدة حول موضوع التنمر والتحرش.</p>
+                </div>
+                <div class="page-content">
+                    <div class="resources-grid">
+                        <div class="resource-category">
+                            <h3><i class="fas fa-download"></i> تحميل الكتيبات</h3>
+                            <div class="pdf-resources">
+                                <div class="pdf-item">
+                                    <div class="pdf-preview" data-pdf="cyberbullying.pdf">
+                                        <i class="fas fa-file-pdf"></i>
+                                        <span>معاينة</span>
+                                    </div>
+                                    <div class="pdf-info">
+                                        <h4>دليل الحماية من التنمر الإلكتروني</h4>
+                                        <p>PDF - 2.4 MB</p>
+                                        <a href="cyberbullying.pdf" download class="btn-download">
+                                            <i class="fas fa-download"></i> تحميل
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                <div class="pdf-item">
+                                    <div class="pdf-preview" data-pdf="1901202302021271.pdf">
+                                        <i class="fas fa-file-pdf"></i>
+                                        <span>معاينة</span>
+                                    </div>
+                                    <div class="pdf-info">
+                                        <h4>كيفية التعامل مع حالات التحرش</h4>
+                                        <p>PDF - 1.8 MB</p>
+                                        <a href="1901202302021271.pdf" download class="btn-download">
+                                            <i class="fas fa-download"></i> تحميل
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                <div class="pdf-item">
+                                    <div class="pdf-preview" data-pdf="bullying.pdf">
+                                        <i class="fas fa-file-pdf"></i>
+                                        <span>معاينة</span>
+                                    </div>
+                                    <div class="pdf-info">
+                                        <h4>دليل الآباء للتعامل مع التنمر</h4>
+                                        <p>PDF - 3.1 MB</p>
+                                        <a href="bullying.pdf" download class="btn-download">
+                                            <i class="fas fa-download"></i> تحميل
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="resource-category">
+                            <h3><i class="fas fa-link"></i> روابط مفيدة</h3>
+                            <div class="links-list">
+                                <a href="https://www.moi.gov.eg/" target="_blank" class="useful-link">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    <span>وزارة الداخلية المصرية</span>
+                                </a>
+                                <a href="http://www.nccm.gov.eg/" target="_blank" class="useful-link">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    <span>المركز القومي للطفولة والأمومة</span>
+                                </a>
+                                <a href="https://www.nti.sci.eg/" target="_blank" class="useful-link">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    <span>المعهد القومي للاتصالات</span>
+                                </a>
+                                <a href="https://www.unicef.org/egypt/ar" target="_blank" class="useful-link">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    <span>منظمة اليونيسف - مصر</span>
+                                </a>
+                                <a href="https://www.who.int/" target="_blank" class="useful-link">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    <span>منظمة الصحة العالمية</span>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="resource-category">
+                            <h3><i class="fas fa-phone-alt"></i> خطوط المساعدة</h3>
+                            <div class="helplines">
+                                <div class="helpline-item">
+                                    <i class="fas fa-phone"></i>
+                                    <div class="helpline-info">
+                                        <h4>خط نجدة الطفل</h4>
+                                        <p>16000</p>
+                                        <span>خدمة مجانية على مدار الساعة</span>
+                                    </div>
+                                </div>
+                                <div class="helpline-item">
+                                    <i class="fas fa-phone"></i>
+                                    <div class="helpline-info">
+                                        <h4>خط مساعدة مكافحة التنمر</h4>
+                                        <p>16528</p>
+                                        <span>دعم نفسي وقانوني</span>
+                                    </div>
+                                </div>
+                                <div class="helpline-item">
+                                    <i class="fas fa-phone"></i>
+                                    <div class="helpline-info">
+                                        <h4>الطوارئ النفسية</h4>
+                                        <p>08008880700</p>
+                                        <span>دعم نفسي عاجل</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- صفحة التنبيهات الواردة -->
+            <div class="page" id="notifications">
+                <div class="page-header">
+                    <h2>التنبيهات الواردة</h2>
+                    <p>عرض جميع الإشعارات والتنبيهات الخاصة بحسابك</p>
+                </div>
+                <div class="page-content notifications-page">
+                    <div class="notification-card unread">
+                        <h4><i class="fas fa-check-circle" style="color: #4CC9A4;"></i> تم استلام بلاغك وسيتم مراجعته</h4>
+                        <p>تم استلام بلاغك رقم #1234 وسيتم مراجعته من قبل الفريق المختص خلال 24 ساعة</p>
+                        <div class="notification-time">منذ 2 ساعة</div>
+                    </div>
+                    
+                    <div class="notification-card">
+                        <h4><i class="fas fa-exclamation-circle" style="color: #FFC857;"></i> يوجد تحديث جديد على المنصة</h4>
+                        <p>تم إضافة ميزات جديدة إلى المنصة، تفقدها الآن!</p>
+                        <div class="notification-time">منذ 5 ساعات</div>
+                    </div>
+                    
+                    <div class="notification-card">
+                        <h4><i class="fas fa-comment" style="color: #6C63FF;"></i> لديك رسالة جديدة من الاستشاري المتخصص</h4>
+                        <p>لديك رسالة جديدة من المستشار أحمد محمد، تفقدها الآن</p>
+                        <div class="notification-time">منذ يوم</div>
+                    </div>
+                    
+                    <div class="notification-card">
+                        <h4><i class="fas fa-shield-alt" style="color: #36D1DC;"></i> تم حل بلاغك رقم #1234</h4>
+                        <p>تم حل بلاغك بنجاح واتخاذ الإجراءات اللازمة</p>
+                        <div class="notification-time">منذ 3 أيام</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <footer role="contentinfo">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>عن المنصة</h3>
+                    <p>منصة "أبطال الوعي" تهدف إلى مكافحة التنمر والتحرش الإلكتروني بكافة أشكالهما من خلال التوعية والتوجيه وتقديم الدعم اللازم للمتضررين.</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>روابط مهمة</h3>
+                    <p><a href="https://www.moi.gov.eg/" target="_blank">وزارة الداخلية</a></p>
+                    <p><a href="http://www.nccm.gov.eg/" target="_blank">المركز القومي للطفولة والأمومة</a></p>
+                    <p><a href="https://www.nti.sci.eg/" target="_blank">المعهد القومي للاتصالات</a></p>
+                    <p><a href="https://www.unicef.org/egypt/ar" target="_blank">منظمة اليونيسف</a></p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>التواصل معنا</h3>
+                    <p>البريد الإلكتروني: info@abtal-alwaai.com</p>
+                    <p> الخط الساخن</p>
+                    <p>العنوان: الاسكندرية مصر</p>
+                    
+                    <div class="social-icons">
+                        <a href="#" aria-label="صفحتنا على فيسبوك"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="حسابنا على تويتر"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="حسابنا على انستجرام"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="قناتنا على يوتيوب"><i class="fab fa-youtube"></i></a>
+                        <a href="#" aria-label="صفحتنا على لينكدإن"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>جميع الحقوق محفوظة © 2025 منصة أبطال الوعي</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- نافذة تسجيل الدخول -->
+    <div class="auth-container" id="loginContainer">
+        <div class="auth-form">
+            <span class="close-auth" id="closeLogin">&times;</span>
+            <h2>تسجيل الدخول</h2>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">البريد الإلكتروني</label>
+                    <input type="email" id="loginEmail" placeholder="أدخل بريدك الإلكتروني" required>
+                    <div class="error-message" id="loginEmailError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">كلمة المرور</label>
+                    <div class="password-container">
+                        <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور" required>
+                        <span class="toggle-password" id="toggleLoginPassword">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                    <div class="error-message" id="loginPasswordError"></div>
+                </div>
+                
+                <div class="form-options">
+                    <div class="remember-me">
+                        <input type="checkbox" id="rememberMe">
+                        <label for="rememberMe">تذكرني</label>
+                    </div>
+                    <a href="#" id="forgotPasswordLink">نسيت كلمة المرور؟</a>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full">تسجيل الدخول</button>
+                
+                <div class="auth-switch">
+                    ليس لديك حساب؟ <a href="#" id="switchToRegister">إنشاء حساب جديد</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة إنشاء حساب -->
+    <div class="auth-container" id="registerContainer">
+        <div class="auth-form">
+            <span class="close-auth" id="closeRegister">&times;</span>
+            <h2>إنشاء حساب جديد</h2>
+            
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="registerName">الاسم الكامل</label>
+                    <input type="text" id="registerName" placeholder="أدخل اسمك الكامل" required>
+                    <div class="error-message" id="registerNameError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerEmail">البريد الإلكتروني</label>
+                    <input type="email" id="registerEmail" placeholder="أدخل بريدك الإلكتروني" required>
+                    <div class="error-message" id="registerEmailError"></div>
+                </div>
+                
+                 <div class="form-group">
+                    <label for="registerNationalId">الرقم القومي</label>
+                    <input type="text" id="registerNationalId" placeholder="أدخل الرقم القومي" required maxlength="14">
+                    <div class="error-message" id="registerNationalIdError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="registerPhone">رقم الهاتف</label>
+                    <input type="tel" id="registerPhone" placeholder="أدخل رقم الهاتف" required>
+                    <div class="error-message" id="registerPhoneError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerPassword">كلمة المرور</label>
+                    <div class="password-container">
+                        <input type="password" id="registerPassword" placeholder="أدخل كلمة المرور" required>
+                        <span class="toggle-password" id="toggleRegisterPassword">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                    <div class="strength-meter">
+                        <div class="strength-meter-fill" id="passwordStrength"></div>
+                    </div>
+                    <div class="password-feedback" id="passwordFeedback"></div>
+                    <div class="error-message" id="registerPasswordError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">تأكيد كلمة المرور</label>
+                    <div class="password-container">
+                        <input type="password" id="confirmPassword" placeholder="أعد إدخال كلمة المرور" required>
+                        <span class="toggle-password" id="toggleConfirmPassword">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                    <div class="error-message" id="confirmPasswordError"></div>
+                </div>
+                
+                <div id="acceptTerms" class="form-group terms">
+                    <input type="checkbox" required>
+                    <label for="acceptTerms">أوافق على <a href="terms.html">شروط الاستخدام</a> و <a href="privacy.html">سياسة الخصوصية</a></label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full">إنشاء حساب</button>
+                
+                <div class="auth-switch">
+                    لديك حساب بالفعل؟ <a href="#" id="switchToLogin">تسجيل الدخول</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة استعادة كلمة المرور -->
+    <div class="auth-container" id="forgotPasswordContainer">
+        <div class="auth-form">
+            <span class="close-auth" id="closeForgotPassword">&times;</span>
+            <h2>استعادة كلمة المرور</h2>
+            
+            <form id="forgotPasswordForm">
+                <div class="form-group">
+                    <p>أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور</p>
+                    <input type="email" id="forgotPasswordEmail" placeholder="البريد الإلكتروني" required>
+                    <div class="error-message" id="forgotPasswordEmailError"></div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full">إرسال رابط الاستعادة</button>
+                
+                <div class="auth-switch">
+                    <a href="#" id="backToLogin">العودة إلى تسجيل الدخول</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- نموذج الإبلاغ -->
+    <div class="report-container" id="reportContainer">
+        <div class="report-form">
+            <span class="close-auth" id="closeReport">&times;</span>
+            <h2>الإبلاغ عن حالة</h2>
+            
+            <div class="report-types">
+                <div class="report-type active" data-type="normal">
+                    بلاغ عادي
+                </div>
+                <div class="report-type" data-type="emergency">
+                    بلاغ عاجل
+                    <span class="live-badge">بث مباشر</span>
+                </div>
+            </div>
+            
+            <!-- إضافة خيار البث المباشر في نموذج الإبلاغ -->
+            <div class="form-group" id="liveStreamOption" style="display: none;">
+                <label>بث مباشر للطوارئ</label>
+                <button type="button" class="btn btn-accent" id="startLiveStream">
+                    <i class="fas fa-video"></i> بدء البث المباشر
+                </button>
+                <p class="help-text">سيتم تسجيل البث المباشر تلقائياً وإضافته إلى البلاغ</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="reportType">نوع البلاغ</label>
+                <select id="reportType">
+                    <option value="">اختر نوع البلاغ</option>
+                    <option value="bullying">تنمر</option>
+                    <option value="harassment">تحرش</option>
+                    <option value="blackmail">ابتزاز</option>
+                    <option value="exploitation">استغلال</option>
+                    <option value="other">حالة أخرى</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="reportDetails">تفاصيل البلاغ</label>
+                <textarea id="reportDetails" placeholder="صف ما حدث بالتفصيل"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="reportLocation">مكان الواقعة</label>
+                <input type="text" id="reportLocation" placeholder="أدخل مكان الواقعة">
+                <button class="location-btn" id="detectLocation">
+                    <i class="fas fa-location-arrow"></i> تحديد الموقع الحالي
+                </button>
+            </div>
+            
+            <div class="map-container" id="map" style="display: none;"></div>
+            
+            <div class="form-group">
+                <label for="reportDate">تاريخ الواقعة</label>
+                <input type="date" id="reportDate">
+            </div>
+            
+            <!--  معاينة الملفات في نموذج الإبلاغ -->
+            <div class="form-group">
+                <label>إرفاق ملفات (صور/فيديوهات/ملفات)</label>
+                <div class="file-upload" id="fileUpload">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>انقر لرفع الملفات أو اسحبها هنا</p>
+                    <p class="file-limits">الحد الأقصى: 10MB لكل ملف | الصور، الفيديو، PDF، Word</p>
+                    <input type="file" multiple style="display: none;" id="fileInput" 
+                           accept="image/*,video/*,.pdf,.doc,.docx">
+                </div>
+                <div class="file-preview" id="filePreview"></div>
+            </div>
+            
+            <div class="form-buttons">
+                <button class="btn btn-primary" id="submitReport">إرسال البلاغ</button>
+                <button class="btn btn-outline" id="cancelReport">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+   <!-- شات بوت  -->
+<div class="chatbot-container">
+    <button class="chatbot-button" id="chatbotToggle" aria-label="فتح مساعد الدردشة">
+        <i class="fas fa-robot"></i>
+    </button>
+    <div class="chatbot-window" id="chatbotWindow">
+        <div class="chatbot-header">
+            <h3>مساعد أبطال الوعي</h3>
+            <button class="close-auth" id="closeChatbot">&times;</button>
+        </div>
+        <div class="chatbot-messages" id="chatbotMessages">
+            <div class="message bot-message">
+                مرحباً! أنا مساعدك الافتراضي لمساعدتك هنا بشكل آمن وبسرية تامة.
+                كيف يمكنني مساعدتك اليوم؟
+                <div class="message-time">الآن</div>
+                <div class="chatbot-options">
+                    <button class="chatbot-option" data-option="report">كيف أقدم بلاغ؟</button>
+                    <button class="chatbot-option" data-option="emergency">أرقام الطوارئ</button>
+                    <button class="chatbot-option" data-option="support">الدعم النفسي</button>
+                </div>
+            </div>
+        </div>
+        <div class="chatbot-input">
+            <input type="text" id="chatbotInput" placeholder="اكتب رسالتك هنا...">
+            <div class="chat-media-buttons">
+                <button id="sendMessage" aria-label="إرسال الرسالة"><i class="fas fa-paper-plane"></i></button>
+                <button class="chat-media-btn" id="chatVoiceRecord" aria-label="بدء التسجيل الصوتي">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="chat-media-btn" id="chatAttachment" aria-label="إرفاق ملف">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة معاينة PDF -->
+<div class="pdf-viewer-container" id="pdfViewerContainer">
+    <div class="pdf-viewer">
+        <div class="pdf-viewer-header">
+            <h3 id="pdfViewerTitle">معاينة المستند</h3>
+            <button class="close-auth" id="closePdfViewer">&times;</button>
+        </div>
+        <div class="pdf-viewer-content">
+            <iframe id="pdfFrame" src="" width="100%" height="100%"></iframe>
+        </div>
+        <div class="pdf-viewer-footer">
+            <a href="#" id="pdfDownloadLink" class="btn btn-primary">
+                <i class="fas fa-download"></i> تحميل الملف
+            </a>
+            <button class="btn btn-outline" id="closePdfBtn">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="Java.js"></script>
+</body>
+</html>
